@@ -131,22 +131,21 @@ mt = mt.annotate_rows(
     alt_adj=hl.if_else(mt.swap, mt.ref, mt.alt)
 )
 
-    # **基因型转换**
-    def encode_gt(gt):
-        return hl.case() \
-            .when(gt.is_hom_ref(), 0) \
-            .when(gt.is_het(), 1) \
-            .when(gt.is_hom_var(), 2) \
-            .default(hl.missing(hl.tint32))
+def encode_gt(gt):
+    return hl.case() \
+    .when(gt.is_hom_ref(), 0) \
+    .when(gt.is_het(), 1) \
+    .when(gt.is_hom_var(), 2) \
+    .default(hl.missing(hl.tint32))
 
-    mt = mt.annotate_entries(
-        GT=encode_gt(mt.GT),
-        gt_adj=hl.if_else(
-            mt.swap,  
-            2 - mt.GT.n_alt_alleles(),  
-            mt.GT.n_alt_alleles()
-        )
+mt = mt.annotate_entries(
+    GT=encode_gt(mt.GT),
+    gt_adj=hl.if_else(
+    mt.swap,  
+    2 - mt.GT.n_alt_alleles(),  
+    mt.GT.n_alt_alleles()
     )
+)
 
 # extract position (without chromosome)
 mt = mt.annotate_rows(position=mt.locus.position)
