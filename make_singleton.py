@@ -1,3 +1,4 @@
+import hail as hl
 hl.init()
 
 # extract EUR IDs
