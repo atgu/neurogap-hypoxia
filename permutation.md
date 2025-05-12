@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import argparse
 from scipy.stats import rankdata
+from statsmodels.stats.multitest import fdrcorrection
 
 # -----------------------------
 # Compute enrichment ratio
@@ -51,36 +52,6 @@ def read_data(file_path, observed_bed, random_bed_prefix='regions_'):
     return observed_ratio, perm_ratios, observed_p, perm_ps
 
 # -----------------------------
-# Benjamini-Hochberg FDR correction
-# -----------------------------
-def calculate_fdr_adjusted_pvalues(p_values):
-    m = len(p_values)
-    if m == 0:
-        return np.array([])
-    
-    # Sort p-values
-    sorted_indices = np.argsort(p_values)
-    sorted_p = p_values[sorted_indices]
-    
-    # Compute BH-adjusted p-values
-    adjusted_p = np.zeros(m)
-    for i in range(m):
-        adjusted_p[i] = sorted_p[i] * m / (i + 1)
-    
-    # Enforce monotonicity
-    for i in range(m-2, -1, -1):
-        adjusted_p[i] = min(adjusted_p[i], adjusted_p[i+1])
-
-    # Cap values at 1.0
-    adjusted_p = np.minimum(adjusted_p, 1.0)
-    
-    # Restore original order
-    final_adjusted_p = np.zeros(m)
-    final_adjusted_p[sorted_indices] = adjusted_p
-    
-    return final_adjusted_p
-
-# -----------------------------
 # Significance testing
 # -----------------------------
 def calculate_significance(observed_p, perm_ps, observed_ratio, perm_ratios):
@@ -92,8 +63,8 @@ def calculate_significance(observed_p, perm_ps, observed_ratio, perm_ratios):
     
     # FDR correction
     all_p = np.concatenate([[observed_p], perm_ps])
-    adjusted_p = calculate_fdr_adjusted_pvalues(all_p)
-    results['fdr_adjusted_p'] = adjusted_p[0]
+    _, qvals = fdrcorrection(all_p, alpha=0.05, method='indep')
+    results['fdr_adjusted_p'] = qvals[0]  # q-value for observed_p
     
     return results
 
