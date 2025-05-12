@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import argparse
 from scipy.stats import rankdata
-from statsmodels.stats.multitest import fdrcorrection
+from statsmodels.stats.multitest import multipletests
 
 # -----------------------------
 # Compute enrichment ratio
@@ -63,7 +63,7 @@ def calculate_significance(observed_p, perm_ps, observed_ratio, perm_ratios):
     
     # FDR correction
     all_p = np.concatenate([[observed_p], perm_ps])
-    _, qvals = fdrcorrection(all_p, alpha=0.05, method='indep')
+    rejected, qvals, _, _ = multipletests(all_p, alpha=0.05, method='fdr_bh')
     results['fdr_adjusted_p'] = qvals[0]  # q-value for observed_p
     
     return results
