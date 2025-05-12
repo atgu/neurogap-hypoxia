@@ -40,10 +40,6 @@ def calculate_significance(observed_ratio, perm_ratios):
     # Empirical p-value (proportion of permutations ≥ observed)
     results['empirical_p'] = np.mean(perm_ratios >= observed_ratio)
     
-    # Bonferroni correction
-    results['bonferroni_threshold'] = 0.05 / len(perm_ratios)
-    results['bonferroni_sig'] = results['empirical_p'] < results['bonferroni_threshold']
-    
     # FDR correction (Benjamini-Hochberg)
     all_ratios = np.concatenate([[observed_ratio], perm_ratios])
     ranks = rankdata(-all_ratios)  # Descending rank
